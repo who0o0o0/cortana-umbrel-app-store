@@ -1,25 +1,7 @@
 id: cortana-document-filler
 name: Cortana Document Filler
 tagline: Fill DOCX and PDF templates with placeholder data
-description: |
-  A 100% local/offline web application that fills DOCX and PDF templates with placeholder data while preserving formatting.
-  
-  Features:
-  - 100% Local Processing: No data is sent anywhere - everything runs locally
-  - Multi-Format Support: Upload .docx and .pdf files with placeholders
-  - Smart Placeholder Detection: Automatically detects and parses placeholders
-  - Dynamic Form Generation: Creates forms based on detected placeholders
-  - Data Import/Export: Save and load form data as JSON
-  - Format Preservation: Maintains original formatting (DOCX) or creates clean PDFs
-  - Responsive Design: Works on desktop and mobile devices
-  
-  Placeholder Syntax:
-  - {{client_name}} - Simple text field
-  - {{amount:number}} - Number input
-  - {{date:date}} - Date picker
-  - {{notes:multiline}} - Multi-line text area
-  - {{state|QLD}} - Default value
-  - {{middle_name?optional}} - Optional field
+description: A 100% local/offline web application that fills DOCX and PDF templates with placeholder data while preserving formatting.
 version: 1.0.0
 category: Productivity
 port: 3000
