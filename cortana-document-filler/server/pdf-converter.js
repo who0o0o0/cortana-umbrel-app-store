@@ -67,9 +67,9 @@ router.post('/convert-docx-to-pdf', upload.single('docx'), async (req, res) => {
       fs.unlinkSync(docxPath);
     }
     
-    res.status(500).json({ 
-      error: 'PDF conversion not available. LibreOffice is required for DOCX to PDF conversion in this environment.',
-      details: 'Please install LibreOffice or use the DOCX download option instead.'
+    res.status(503).json({ 
+      error: 'PDF conversion not available in this build.',
+      details: 'This is a minimal test build without LibreOffice. PDF conversion is disabled. Please use the DOCX download option instead.'
     });
 
   } catch (error) {

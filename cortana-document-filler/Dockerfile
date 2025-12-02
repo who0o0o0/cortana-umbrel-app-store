@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-# Install system dependencies including LibreOffice for PDF conversion
+# Install minimal system dependencies (LibreOffice removed for faster build)
 RUN apk add --no-cache \
     python3 \
     make \
@@ -10,10 +10,7 @@ RUN apk add --no-cache \
     pango-dev \
     giflib-dev \
     pixman-dev \
-    wget \
-    libreoffice \
-    tesseract \
-    tesseract-data-eng
+    wget
 
 # Set working directory
 WORKDIR /app

@@ -208,11 +208,11 @@ const server = http.createServer((req, res) => {
           return;
         } catch (error) {
           console.error('LibreOffice conversion failed:', error);
-          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.writeHead(503, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
-            error: 'PDF conversion failed. LibreOffice is required for DOCX to PDF conversion.',
-            details: error.message 
+            error: 'PDF conversion not available in this build.',
+            details: 'This is a minimal test build. PDF conversion is disabled. Please use DOCX download instead.'
           }));
           return;
         }
@@ -452,5 +452,5 @@ if (!fs.existsSync(path.join(distPath, 'index.html'))) {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Cortana app is running at http://localhost:${PORT}`);
   console.log(`📁 Serving files from: ${distPath}`);
-  console.log(`✅ PDF conversion enabled (LibreOffice required)`);
+  console.log(`⚠️  PDF conversion disabled (LibreOffice not installed - minimal build for testing)`);
 });
