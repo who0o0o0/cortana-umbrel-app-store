@@ -20,12 +20,10 @@ description: |
   - {{notes:multiline}} - Multi-line text area
   - {{state|QLD}} - Default value
   - {{middle_name?optional}} - Optional field
-repository: https://github.com/yourusername/cortana-document-filler
+repository: https://github.com/who0o0o0/cortana-umbrel-app-store
 version: 1.0.0
 category: Productivity
-icon: https://raw.githubusercontent.com/yourusername/cortana-document-filler/main/icon.png
 port: 3000
 path: /
-hostname: cortana
 
 

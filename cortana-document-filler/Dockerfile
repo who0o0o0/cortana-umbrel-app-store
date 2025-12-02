@@ -37,7 +37,7 @@ EXPOSE 3000 3002
 
 # Health check script
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000/ || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1
 
 # Start both servers
 CMD ["sh", "-c", "node simple-server.js & node server/server.js & wait"]

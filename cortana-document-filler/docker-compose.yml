@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  cortana:
+  cortana-document-filler:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: cortana-document-filler
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "3000:3000"
       - "3002:3002"
     volumes:
       - ./data:/app/data
