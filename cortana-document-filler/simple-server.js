@@ -435,8 +435,22 @@ const server = http.createServer((req, res) => {
   })();
 });
 
+// Verify dist folder exists before starting
+const distPath = path.join(__dirname, 'dist');
+if (!fs.existsSync(distPath)) {
+  console.error(`❌ ERROR: dist folder not found at ${distPath}`);
+  console.error('Please ensure the frontend has been built with: npm run build');
+  process.exit(1);
+}
+
+if (!fs.existsSync(path.join(distPath, 'index.html'))) {
+  console.error(`❌ ERROR: index.html not found in dist folder`);
+  console.error('Please ensure the frontend has been built with: npm run build');
+  process.exit(1);
+}
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Cortana app is running at http://localhost:${PORT}`);
-  console.log(`📁 Serving files from: ${path.join(__dirname, 'dist')}`);
+  console.log(`📁 Serving files from: ${distPath}`);
   console.log(`✅ PDF conversion enabled (LibreOffice required)`);
 });

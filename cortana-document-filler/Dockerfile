@@ -32,6 +32,9 @@ COPY . .
 # Build the frontend
 RUN npm run build
 
+# Verify dist folder was created
+RUN test -d dist && test -f dist/index.html || (echo "ERROR: Frontend build failed - dist folder or index.html missing" && exit 1)
+
 # Create temp directories
 RUN mkdir -p temp server/temp && chmod -R 777 temp server/temp
 
