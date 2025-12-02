@@ -5,7 +5,7 @@ description: A local web application that fills DOCX and PDF templates with plac
 version: 1.0.0
 developer: Kristofer Townsend
 website: https://github.com/who0o0o0/cortana-umbrel-app-store
-repo: https://github.com/who0o0o0/cortana-umbrel-app-store
+repo: https://github.com/who0o0o0/cortana-umbrel-app-store/tree/main/cortana-document-filler
 port: 3000
 path: /
 categories:
