@@ -1,7 +1,7 @@
 id: cortana-document-filler
 name: Cortana Document Filler
 tagline: Fill DOCX and PDF templates with placeholder data
-description: Fill DOCX and PDF templates with placeholder data. Local processing, multi-format support, and format preservation.
+description: A local web application that fills DOCX and PDF templates with placeholder data while preserving formatting.
 version: 1.0.0
 category: Productivity
 port: 3000
