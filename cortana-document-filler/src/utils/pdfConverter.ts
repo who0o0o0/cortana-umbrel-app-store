@@ -1,4 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
 import jsPDF from 'jspdf';
 import mammoth from 'mammoth';
 
@@ -10,19 +9,8 @@ import mammoth from 'mammoth';
  */
 export async function convertDocxToPdf(docxBytes: Uint8Array, outputFileName: string): Promise<Uint8Array> {
   try {
-    // Check if we're running in Tauri environment
-    if (typeof window !== 'undefined' && '__TAURI__' in window) {
-      // Use Tauri command to invoke PowerShell script for Word COM
-      const pdfBytes = await invoke('convert_docx_to_pdf', {
-        docxBytes: Array.from(docxBytes),
-        fileName: outputFileName
-      });
-      
-      return new Uint8Array(pdfBytes as number[]);
-    } else {
-      // Browser fallback: Convert DOCX to PDF using jsPDF
-      return await convertDocxToPdfBrowser(docxBytes, outputFileName);
-    }
+    // Use browser-based conversion (Linux/Docker compatible)
+    return await convertDocxToPdfBrowser(docxBytes, outputFileName);
   } catch (error) {
     console.error('PDF conversion error:', error);
     throw new Error(`Failed to convert to PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -37,8 +25,8 @@ export async function convertDocxToPdf(docxBytes: Uint8Array, outputFileName: st
  */
 async function convertDocxToPdfBrowser(docxBytes: Uint8Array, outputFileName: string): Promise<Uint8Array> {
   try {
-    // Create temporary files
-    const tempDir = `C:/temp/cortana_pdf_${Date.now()}`;
+    // Use Linux-compatible temp directory path
+    const tempDir = `/tmp/cortana_pdf_${Date.now()}`;
     const docxPath = `${tempDir}/${outputFileName}.docx`;
     const pdfPath = `${tempDir}/${outputFileName}.pdf`;
     
@@ -60,7 +48,7 @@ async function convertDocxToPdfBrowser(docxBytes: Uint8Array, outputFileName: st
       body: formData
     });
     
-    // Convert using PowerShell
+    // Convert using server API (Linux-compatible)
     const convertResponse = await fetch('/api/convert-docx', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -68,7 +56,7 @@ async function convertDocxToPdfBrowser(docxBytes: Uint8Array, outputFileName: st
     });
     
     if (!convertResponse.ok) {
-      throw new Error('PowerShell conversion failed');
+      throw new Error('PDF conversion failed');
     }
     
     // Read PDF file
@@ -89,12 +77,12 @@ async function convertDocxToPdfBrowser(docxBytes: Uint8Array, outputFileName: st
     return new Uint8Array(pdfArrayBuffer);
     
   } catch (error) {
-    console.error('WordCOM PDF conversion error:', error);
+    console.error('PDF conversion error:', error);
     
-    // Fallback to simple PDF
+    // Fallback to simple PDF using jsPDF
     const doc = new jsPDF();
     doc.setFontSize(12);
-    doc.text('WordCOM conversion failed. Please ensure Microsoft Word is installed.', 20, 20);
+    doc.text('PDF conversion unavailable in this environment.', 20, 20);
     doc.text(`File: ${outputFileName}`, 20, 30);
     doc.text('For exact formatting, please download the DOCX file.', 20, 40);
     

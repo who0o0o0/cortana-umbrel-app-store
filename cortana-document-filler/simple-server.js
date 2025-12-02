@@ -167,50 +167,64 @@ const server = http.createServer((req, res) => {
         const body = await parseJSONBody(req);
         let { docxPath, pdfPath } = body;
         
-        // Convert forward slashes to backslashes for Windows paths
-        docxPath = docxPath.replace(/\//g, '\\');
-        pdfPath = pdfPath.replace(/\//g, '\\');
-        
-        // Get the directory of this script
-        const scriptDir = __dirname;
-        const psScript = path.join(scriptDir, 'convert-docx-to-pdf.ps1');
+        // Ensure paths use forward slashes (Linux-compatible)
+        docxPath = docxPath.replace(/\\/g, '/');
+        pdfPath = pdfPath.replace(/\\/g, '/');
         
         console.log(`Converting ${docxPath} to ${pdfPath}...`);
         
-        // Execute PowerShell script
-        const { stdout, stderr } = await execAsync(
-          `powershell -ExecutionPolicy Bypass -File "${psScript}" -DocxPath "${docxPath}" -PdfPath "${pdfPath}"`
-        );
+        // Try LibreOffice for PDF conversion (Linux-compatible)
+        const outputDir = path.dirname(docxPath);
+        const conversionCommand = `libreoffice --headless --convert-to pdf --outdir "${outputDir}" "${docxPath}"`;
         
-        if (stderr && !stderr.includes('WARNING')) {
-          console.error('PowerShell error:', stderr);
-          throw new Error(stderr);
+        try {
+          const { stdout, stderr } = await execAsync(conversionCommand);
+          
+          // LibreOffice creates PDF with same name but .pdf extension
+          const expectedPdfPath = path.join(path.dirname(docxPath), path.basename(docxPath, '.docx') + '.pdf');
+          
+          // Wait for PDF to be created
+          let attempts = 0;
+          while (!fs.existsSync(expectedPdfPath) && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          if (!fs.existsSync(expectedPdfPath)) {
+            throw new Error('PDF file was not created by LibreOffice');
+          }
+          
+          // If a specific pdfPath was requested and it's different, move the file
+          if (expectedPdfPath !== pdfPath) {
+            if (fs.existsSync(pdfPath)) {
+              fs.unlinkSync(pdfPath);
+            }
+            fs.renameSync(expectedPdfPath, pdfPath);
+          }
+          
+          console.log('PDF conversion successful!');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Converted using LibreOffice' }));
+          return;
+        } catch (error) {
+          console.error('LibreOffice conversion failed:', error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            error: 'PDF conversion failed. LibreOffice is required for DOCX to PDF conversion.',
+            details: error.message 
+          }));
+          return;
         }
-        
-        // Wait for PDF to be created
-        let attempts = 0;
-        while (!fs.existsSync(pdfPath) && attempts < 50) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-        
-        if (!fs.existsSync(pdfPath)) {
-          throw new Error('PDF file was not created');
-        }
-        
-        console.log('PDF conversion successful!');
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, message: stdout }));
-        return;
       }
 
       if (req.url.startsWith('/api/read-file') && req.method === 'GET') {
         const url = new URL(req.url, `http://${req.headers.host}`);
         let filePath = url.searchParams.get('path');
         
-        // Convert forward slashes to backslashes for Windows paths
+        // Normalize paths for Linux (convert backslashes to forward slashes)
         if (filePath) {
-          filePath = filePath.replace(/\//g, '\\');
+          filePath = filePath.replace(/\\/g, '/');
         }
         
         if (!filePath || !fs.existsSync(filePath)) {
@@ -231,8 +245,8 @@ const server = http.createServer((req, res) => {
         const body = await parseJSONBody(req);
         let { tempDir } = body;
         
-        // Convert forward slashes to backslashes for Windows paths
-        tempDir = tempDir.replace(/\//g, '\\');
+        // Normalize paths for Linux (convert backslashes to forward slashes)
+        tempDir = tempDir.replace(/\\/g, '/');
         
         if (fs.existsSync(tempDir)) {
           fs.rmSync(tempDir, { recursive: true, force: true });

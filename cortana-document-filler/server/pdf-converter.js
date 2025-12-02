@@ -14,7 +14,7 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
-// WordCOM PDF conversion endpoint
+// PDF conversion endpoint (Linux-compatible using LibreOffice or pandoc)
 router.post('/convert-docx-to-pdf', upload.single('docx'), async (req, res) => {
   try {
     if (!req.file) {
@@ -27,56 +27,50 @@ router.post('/convert-docx-to-pdf', upload.single('docx'), async (req, res) => {
 
     console.log(`Converting ${docxPath} to ${pdfPath}`);
 
-    // PowerShell script to convert DOCX to PDF using Word COM
-    const psScript = `
-      $word = New-Object -ComObject Word.Application
-      $word.Visible = $false
-      try {
-        $doc = $word.Documents.Open("${docxPath.replace(/\\/g, '\\\\')}")
-        $doc.SaveAs([ref] "${pdfPath.replace(/\\/g, '\\\\')}", [ref] 17)  # 17 = wdFormatPDF
-        $doc.Close()
-        Write-Output "SUCCESS"
-      } catch {
-        Write-Error $_.Exception.Message
-        exit 1
-      } finally {
-        $word.Quit()
-        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($word) | Out-Null
-        [System.GC]::Collect()
-        [System.GC]::WaitForPendingFinalizers()
+    // Try LibreOffice first (common in Linux environments)
+    let conversionCommand = `libreoffice --headless --convert-to pdf --outdir ${path.dirname(docxPath)} "${docxPath}"`;
+    
+    try {
+      const { stdout, stderr } = await execAsync(conversionCommand);
+      
+      // LibreOffice creates PDF with same name but .pdf extension
+      const expectedPdfPath = path.join(path.dirname(docxPath), path.basename(docxPath, '.docx') + '.pdf');
+      
+      // Wait for PDF file to be created
+      let attempts = 0;
+      while (!fs.existsSync(expectedPdfPath) && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
       }
-    `;
 
-    // Execute PowerShell script
-    const { stdout, stderr } = await execAsync(`powershell -NoProfile -Command "${psScript}"`);
+      if (fs.existsSync(expectedPdfPath)) {
+        // Read the PDF file
+        const pdfBuffer = fs.readFileSync(expectedPdfPath);
+        
+        // Clean up temporary files
+        fs.unlinkSync(docxPath);
+        fs.unlinkSync(expectedPdfPath);
+
+        // Send PDF as response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
+        res.send(pdfBuffer);
+        return;
+      }
+    } catch (libreOfficeError) {
+      console.log('LibreOffice not available, trying alternative methods...');
+    }
+
+    // Fallback: Return error - PDF conversion not available
+    // Clean up files on error
+    if (fs.existsSync(docxPath)) {
+      fs.unlinkSync(docxPath);
+    }
     
-    if (stderr) {
-      console.error('PowerShell error:', stderr);
-      throw new Error(`PowerShell conversion failed: ${stderr}`);
-    }
-
-    // Wait for PDF file to be created
-    let attempts = 0;
-    while (!fs.existsSync(pdfPath) && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!fs.existsSync(pdfPath)) {
-      throw new Error('PDF file was not created');
-    }
-
-    // Read the PDF file
-    const pdfBuffer = fs.readFileSync(pdfPath);
-    
-    // Clean up temporary files
-    fs.unlinkSync(docxPath);
-    fs.unlinkSync(pdfPath);
-
-    // Send PDF as response
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
-    res.send(pdfBuffer);
+    res.status(500).json({ 
+      error: 'PDF conversion not available. LibreOffice is required for DOCX to PDF conversion in this environment.',
+      details: 'Please install LibreOffice or use the DOCX download option instead.'
+    });
 
   } catch (error) {
     console.error('PDF conversion error:', error);

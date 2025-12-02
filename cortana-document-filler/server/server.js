@@ -71,16 +71,28 @@ app.post('/api/ocr', async (req, res) => {
     // Write PDF to temp file
     fs.writeFileSync(tempFilePath, pdfData);
 
-    // Get OCR script path (assuming OCR folder is at the same level as The Cortana)
-    let ocrScriptPath = path.join(__dirname, '../../OCR/ocr_pdf.py');
+    // OCR is optional - if script not found, return error but don't crash
+    // Try to find OCR script in common locations
+    let ocrScriptPath = null;
+    const possiblePaths = [
+      path.join(__dirname, '../../OCR/ocr_pdf.py'),
+      path.join(__dirname, '../../../OCR/ocr_pdf.py'),
+      '/app/OCR/ocr_pdf.py',
+      '/usr/local/bin/ocr_pdf.py'
+    ];
     
-    if (!fs.existsSync(ocrScriptPath)) {
-      // Try alternative path
-      const altPath = path.join(__dirname, '../../../OCR/ocr_pdf.py');
-      if (!fs.existsSync(altPath)) {
-        return res.status(500).json({ error: 'OCR script not found. Please ensure the OCR folder is available.' });
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        ocrScriptPath = testPath;
+        break;
       }
-      ocrScriptPath = altPath;
+    }
+    
+    if (!ocrScriptPath) {
+      return res.status(500).json({ 
+        error: 'OCR functionality not available. OCR script not found in this environment.',
+        details: 'OCR is an optional feature and may not be available in all deployments.'
+      });
     }
 
     // Call Python OCR script (try python, python3, or py)
