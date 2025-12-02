@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  cortana-document-filler:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,9 +9,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
-      - ./temp:/app/temp
-      - ./server/temp:/app/server/temp
+      - umbrel_app_data:/app/data
+      - umbrel_app_temp:/app/temp
+      - umbrel_app_server_temp:/app/server/temp
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -21,5 +21,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  umbrel_app_data:
+  umbrel_app_temp:
+  umbrel_app_server_temp:
 
 

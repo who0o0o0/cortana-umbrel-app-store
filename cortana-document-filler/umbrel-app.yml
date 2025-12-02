@@ -3,8 +3,14 @@ name: Cortana Document Filler
 tagline: Fill DOCX and PDF templates with placeholder data
 description: A local web application that fills DOCX and PDF templates with placeholder data while preserving formatting.
 version: 1.0.0
-category: Productivity
+developer: Kristofer Townsend
+website: https://github.com/who0o0o0/cortana-umbrel-app-store
+repo: https://github.com/who0o0o0/cortana-umbrel-app-store
 port: 3000
 path: /
+categories:
+  - productivity
+permissions:
+  - STORAGE
 
 
