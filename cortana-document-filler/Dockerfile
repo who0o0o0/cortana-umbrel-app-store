@@ -35,8 +35,8 @@ RUN test -d dist && test -f dist/index.html || (echo "ERROR: Frontend build fail
 # Create temp directories
 RUN mkdir -p temp server/temp && chmod -R 777 temp server/temp
 
-# Expose ports
-EXPOSE 3000 3002
+# Expose port
+EXPOSE 3000
 
 # Health check script
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
