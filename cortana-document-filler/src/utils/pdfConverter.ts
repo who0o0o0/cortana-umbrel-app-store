@@ -31,11 +31,21 @@ async function convertDocxToPdfBrowser(docxBytes: Uint8Array, outputFileName: st
     const pdfPath = `${tempDir}/${outputFileName}.pdf`;
     
     // Create temp directory - using relative URL to hit simple-server.js on port 3000
-    await fetch('/api/create-temp-dir', {
+    const tempDirResponse = await fetch('/api/create-temp-dir', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tempDir: tempDir })
     });
+    
+    if (!tempDirResponse.ok) {
+      const errorData = await tempDirResponse.json().catch(() => ({ error: 'Failed to create temp directory' }));
+      throw new Error(`Failed to create temp directory: ${errorData.error || tempDirResponse.statusText}`);
+    }
+    
+    const tempDirResult = await tempDirResponse.json();
+    if (!tempDirResult.success) {
+      throw new Error(`Failed to create temp directory: ${tempDirResult.error || 'Unknown error'}`);
+    }
     
     // Write DOCX file
     const docxBlob = new Blob([docxBytes as any], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });

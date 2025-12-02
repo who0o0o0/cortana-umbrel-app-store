@@ -28,7 +28,7 @@ router.post('/convert-docx-to-pdf', upload.single('docx'), async (req, res) => {
     console.log(`Converting ${docxPath} to ${pdfPath}`);
 
     // Try LibreOffice first (common in Linux environments)
-    let conversionCommand = `libreoffice --headless --convert-to pdf --outdir ${path.dirname(docxPath)} "${docxPath}"`;
+    let conversionCommand = `libreoffice --headless --convert-to pdf --outdir "${path.dirname(docxPath)}" "${docxPath}"`;
     
     try {
       const { stdout, stderr } = await execAsync(conversionCommand);

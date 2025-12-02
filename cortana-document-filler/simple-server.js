@@ -438,5 +438,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Cortana app is running at http://localhost:${PORT}`);
   console.log(`📁 Serving files from: ${path.join(__dirname, 'dist')}`);
-  console.log(`✅ PDF conversion enabled (Microsoft Word required)`);
+  console.log(`✅ PDF conversion enabled (LibreOffice required)`);
 });
