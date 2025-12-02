@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  default:
+    driver: bridge
+
 services:
   cortana-document-filler:
     build:
@@ -22,5 +26,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - default
 
 
